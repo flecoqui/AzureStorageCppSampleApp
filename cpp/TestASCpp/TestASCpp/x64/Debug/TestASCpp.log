@@ -1,4 +1,0 @@
-﻿  TestASCpp.cpp
-c:\git\flecoqui\azurestoragecppsampleapp\cpp\testascpp\testascpp\testascpp.cpp(5): fatal error C1083: Cannot open include file: 'was/storage_account.h': No such file or directory
-  stdafx.cpp
-  Generating Code...
