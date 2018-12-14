@@ -1,0 +1,139 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AzureStoragePlugin", "AzureStoragePlugin\AzureStoragePlugin.vcxproj", "{5A40B9D9-1948-449D-8D81-3B2209C98BBD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tools", "tools\tools.vcxproj", "{114AEFF8-6CF0-49A9-8D3D-FC0713CB5FBF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "utils", "utils\utils.vcxproj", "{75971E8E-919B-41F5-9C32-0BDB8D8063E1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "App", "App\App.vcxproj", "{7461A63A-59DF-46BA-B854-4DB82BAB78E0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deps", "Deps", "{74AD3061-4AF8-496A-B9CB-3F9AD5D040C0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AzureStoragePlugin", "AzureStoragePlugin", "{B1B251F9-6AE9-4A6A-AF9F-4B8139291917}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "x64", "x64", "{FCCFAF57-1ACD-4CEA-BE42-394820C75C70}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Debug", "Debug", "{1B6A5645-778D-4E69-8692-B52DB590B89D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Release", "Release", "{5312F22B-9AFA-474E-82C9-1F809ED828A8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Inc", "Inc", "{E41AC3D4-A362-45DA-88AB-B6EBE3933C30}"
+	ProjectSection(SolutionItems) = preProject
+		inc\AzureStoragePluginAPI.h = inc\AzureStoragePluginAPI.h
+		inc\IStoragePlugin.h = inc\IStoragePlugin.h
+		inc\tools.h = inc\tools.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PluginDeps", "PluginDeps", "{3E6AD7CE-4B91-4A2E-916E-5C0B5D92BCBE}"
+	ProjectSection(SolutionItems) = preProject
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\boost_date_time-vc141-mt-gd-x64-1_68.dll = deps\AzureStoragePlugin\x64\Debug\PluginDeps\boost_date_time-vc141-mt-gd-x64-1_68.dll
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\boost_date_time-vc141-mt-gd-x64-1_68.pdb = deps\AzureStoragePlugin\x64\Debug\PluginDeps\boost_date_time-vc141-mt-gd-x64-1_68.pdb
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\boost_system-vc141-mt-gd-x64-1_68.dll = deps\AzureStoragePlugin\x64\Debug\PluginDeps\boost_system-vc141-mt-gd-x64-1_68.dll
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\boost_system-vc141-mt-gd-x64-1_68.pdb = deps\AzureStoragePlugin\x64\Debug\PluginDeps\boost_system-vc141-mt-gd-x64-1_68.pdb
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\cpprest_2_10d.dll = deps\AzureStoragePlugin\x64\Debug\PluginDeps\cpprest_2_10d.dll
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\cpprest_2_10d.pdb = deps\AzureStoragePlugin\x64\Debug\PluginDeps\cpprest_2_10d.pdb
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\libeay32.dll = deps\AzureStoragePlugin\x64\Debug\PluginDeps\libeay32.dll
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\libeay32.pdb = deps\AzureStoragePlugin\x64\Debug\PluginDeps\libeay32.pdb
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\manifest-to-merge.Manifest = deps\AzureStoragePlugin\x64\Debug\PluginDeps\manifest-to-merge.Manifest
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\PluginDeps.manifest = deps\AzureStoragePlugin\x64\Debug\PluginDeps\PluginDeps.manifest
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\ssleay32.dll = deps\AzureStoragePlugin\x64\Debug\PluginDeps\ssleay32.dll
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\ssleay32.pdb = deps\AzureStoragePlugin\x64\Debug\PluginDeps\ssleay32.pdb
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\tools.dll = deps\AzureStoragePlugin\x64\Debug\PluginDeps\tools.dll
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\utils.dll = deps\AzureStoragePlugin\x64\Debug\PluginDeps\utils.dll
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\wastorage.dll = deps\AzureStoragePlugin\x64\Debug\PluginDeps\wastorage.dll
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\wastorage.pdb = deps\AzureStoragePlugin\x64\Debug\PluginDeps\wastorage.pdb
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\zlibd.pdb = deps\AzureStoragePlugin\x64\Debug\PluginDeps\zlibd.pdb
+		deps\AzureStoragePlugin\x64\Debug\PluginDeps\zlibd1.dll = deps\AzureStoragePlugin\x64\Debug\PluginDeps\zlibd1.dll
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PluginDeps", "PluginDeps", "{0A70D9AE-C9DA-48B4-8B15-ADFA574AB19A}"
+	ProjectSection(SolutionItems) = preProject
+		deps\AzureStoragePlugin\x64\Release\PluginDeps\boost_date_time-vc141-mt-x64-1_68.dll = deps\AzureStoragePlugin\x64\Release\PluginDeps\boost_date_time-vc141-mt-x64-1_68.dll
+		deps\AzureStoragePlugin\x64\Release\PluginDeps\boost_system-vc141-mt-x64-1_68.dll = deps\AzureStoragePlugin\x64\Release\PluginDeps\boost_system-vc141-mt-x64-1_68.dll
+		deps\AzureStoragePlugin\x64\Release\PluginDeps\cpprest_2_10.dll = deps\AzureStoragePlugin\x64\Release\PluginDeps\cpprest_2_10.dll
+		deps\AzureStoragePlugin\x64\Release\PluginDeps\libeay32.dll = deps\AzureStoragePlugin\x64\Release\PluginDeps\libeay32.dll
+		deps\AzureStoragePlugin\x64\Release\PluginDeps\manifest-to-merge.Manifest = deps\AzureStoragePlugin\x64\Release\PluginDeps\manifest-to-merge.Manifest
+		deps\AzureStoragePlugin\x64\Release\PluginDeps\PluginDeps.manifest = deps\AzureStoragePlugin\x64\Release\PluginDeps\PluginDeps.manifest
+		deps\AzureStoragePlugin\x64\Release\PluginDeps\ssleay32.dll = deps\AzureStoragePlugin\x64\Release\PluginDeps\ssleay32.dll
+		deps\AzureStoragePlugin\x64\Release\PluginDeps\tools.dll = deps\AzureStoragePlugin\x64\Release\PluginDeps\tools.dll
+		deps\AzureStoragePlugin\x64\Release\PluginDeps\utils.dll = deps\AzureStoragePlugin\x64\Release\PluginDeps\utils.dll
+		deps\AzureStoragePlugin\x64\Release\PluginDeps\wastorage.dll = deps\AzureStoragePlugin\x64\Release\PluginDeps\wastorage.dll
+		deps\AzureStoragePlugin\x64\Release\PluginDeps\zlib1.dll = deps\AzureStoragePlugin\x64\Release\PluginDeps\zlib1.dll
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "App", "App", "{147E1677-A295-40B1-97E9-1BD060DCC71C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "x64", "x64", "{555E507F-1752-4A62-90A7-3FF45030848B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Debug", "Debug", "{9A92B2D4-C085-4D2E-A66A-5155C9BFA080}"
+	ProjectSection(SolutionItems) = preProject
+		deps\App\x64\Debug\boost_date_time-vc140-mt-gd-1_60.dll = deps\App\x64\Debug\boost_date_time-vc140-mt-gd-1_60.dll
+		deps\App\x64\Debug\boost_date_time-vc140-mt-gd-1_60.pdb = deps\App\x64\Debug\boost_date_time-vc140-mt-gd-1_60.pdb
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Release", "Release", "{84BD8A91-2F53-4B9D-87FF-159E2817A191}"
+	ProjectSection(SolutionItems) = preProject
+		deps\App\x64\Release\boost_date_time-vc140-mt-1_60.dll = deps\App\x64\Release\boost_date_time-vc140-mt-1_60.dll
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5A40B9D9-1948-449D-8D81-3B2209C98BBD}.Debug|x64.ActiveCfg = Debug|x64
+		{5A40B9D9-1948-449D-8D81-3B2209C98BBD}.Debug|x64.Build.0 = Debug|x64
+		{5A40B9D9-1948-449D-8D81-3B2209C98BBD}.Debug|x86.ActiveCfg = Debug|Win32
+		{5A40B9D9-1948-449D-8D81-3B2209C98BBD}.Debug|x86.Build.0 = Debug|Win32
+		{5A40B9D9-1948-449D-8D81-3B2209C98BBD}.Release|x64.ActiveCfg = Release|x64
+		{5A40B9D9-1948-449D-8D81-3B2209C98BBD}.Release|x64.Build.0 = Release|x64
+		{5A40B9D9-1948-449D-8D81-3B2209C98BBD}.Release|x86.ActiveCfg = Release|Win32
+		{5A40B9D9-1948-449D-8D81-3B2209C98BBD}.Release|x86.Build.0 = Release|Win32
+		{114AEFF8-6CF0-49A9-8D3D-FC0713CB5FBF}.Debug|x64.ActiveCfg = Debug|x64
+		{114AEFF8-6CF0-49A9-8D3D-FC0713CB5FBF}.Debug|x64.Build.0 = Debug|x64
+		{114AEFF8-6CF0-49A9-8D3D-FC0713CB5FBF}.Debug|x86.ActiveCfg = Debug|Win32
+		{114AEFF8-6CF0-49A9-8D3D-FC0713CB5FBF}.Debug|x86.Build.0 = Debug|Win32
+		{114AEFF8-6CF0-49A9-8D3D-FC0713CB5FBF}.Release|x64.ActiveCfg = Release|x64
+		{114AEFF8-6CF0-49A9-8D3D-FC0713CB5FBF}.Release|x64.Build.0 = Release|x64
+		{114AEFF8-6CF0-49A9-8D3D-FC0713CB5FBF}.Release|x86.ActiveCfg = Release|Win32
+		{114AEFF8-6CF0-49A9-8D3D-FC0713CB5FBF}.Release|x86.Build.0 = Release|Win32
+		{75971E8E-919B-41F5-9C32-0BDB8D8063E1}.Debug|x64.ActiveCfg = Debug|x64
+		{75971E8E-919B-41F5-9C32-0BDB8D8063E1}.Debug|x64.Build.0 = Debug|x64
+		{75971E8E-919B-41F5-9C32-0BDB8D8063E1}.Debug|x86.ActiveCfg = Debug|Win32
+		{75971E8E-919B-41F5-9C32-0BDB8D8063E1}.Debug|x86.Build.0 = Debug|Win32
+		{75971E8E-919B-41F5-9C32-0BDB8D8063E1}.Release|x64.ActiveCfg = Release|x64
+		{75971E8E-919B-41F5-9C32-0BDB8D8063E1}.Release|x64.Build.0 = Release|x64
+		{75971E8E-919B-41F5-9C32-0BDB8D8063E1}.Release|x86.ActiveCfg = Release|Win32
+		{75971E8E-919B-41F5-9C32-0BDB8D8063E1}.Release|x86.Build.0 = Release|Win32
+		{7461A63A-59DF-46BA-B854-4DB82BAB78E0}.Debug|x64.ActiveCfg = Debug|x64
+		{7461A63A-59DF-46BA-B854-4DB82BAB78E0}.Debug|x64.Build.0 = Debug|x64
+		{7461A63A-59DF-46BA-B854-4DB82BAB78E0}.Debug|x86.ActiveCfg = Debug|Win32
+		{7461A63A-59DF-46BA-B854-4DB82BAB78E0}.Debug|x86.Build.0 = Debug|Win32
+		{7461A63A-59DF-46BA-B854-4DB82BAB78E0}.Release|x64.ActiveCfg = Release|x64
+		{7461A63A-59DF-46BA-B854-4DB82BAB78E0}.Release|x64.Build.0 = Release|x64
+		{7461A63A-59DF-46BA-B854-4DB82BAB78E0}.Release|x86.ActiveCfg = Release|Win32
+		{7461A63A-59DF-46BA-B854-4DB82BAB78E0}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B1B251F9-6AE9-4A6A-AF9F-4B8139291917} = {74AD3061-4AF8-496A-B9CB-3F9AD5D040C0}
+		{FCCFAF57-1ACD-4CEA-BE42-394820C75C70} = {B1B251F9-6AE9-4A6A-AF9F-4B8139291917}
+		{1B6A5645-778D-4E69-8692-B52DB590B89D} = {FCCFAF57-1ACD-4CEA-BE42-394820C75C70}
+		{5312F22B-9AFA-474E-82C9-1F809ED828A8} = {FCCFAF57-1ACD-4CEA-BE42-394820C75C70}
+		{3E6AD7CE-4B91-4A2E-916E-5C0B5D92BCBE} = {1B6A5645-778D-4E69-8692-B52DB590B89D}
+		{0A70D9AE-C9DA-48B4-8B15-ADFA574AB19A} = {5312F22B-9AFA-474E-82C9-1F809ED828A8}
+		{147E1677-A295-40B1-97E9-1BD060DCC71C} = {74AD3061-4AF8-496A-B9CB-3F9AD5D040C0}
+		{555E507F-1752-4A62-90A7-3FF45030848B} = {147E1677-A295-40B1-97E9-1BD060DCC71C}
+		{9A92B2D4-C085-4D2E-A66A-5155C9BFA080} = {555E507F-1752-4A62-90A7-3FF45030848B}
+		{84BD8A91-2F53-4B9D-87FF-159E2817A191} = {555E507F-1752-4A62-90A7-3FF45030848B}
+	EndGlobalSection
+EndGlobal

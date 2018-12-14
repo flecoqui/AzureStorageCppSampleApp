@@ -1,0 +1,4 @@
+﻿  TestASCpp.cpp
+  LINK : C:\git\flecoqui\AzureStorageCppSampleApp\cpp\TestASCpp\Debug\TestASCpp.exe not found or not built by the last incremental link; performing full link
+  TestASCpp.vcxproj -> C:\git\flecoqui\AzureStorageCppSampleApp\cpp\TestASCpp\Debug\TestASCpp.exe
+  TestASCpp.vcxproj -> C:\git\flecoqui\AzureStorageCppSampleApp\cpp\TestASCpp\Debug\TestASCpp.pdb (Full PDB)
