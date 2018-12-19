@@ -47,8 +47,10 @@ class BlockUpload
 private:
 	int countThreads;                                       // how many threads to use for parallell upload
 	unsigned long chunkSize;                                // size in bytes to send as chunks
+	bool updateblocklist;                                   // update block list after each block copy
 	std::wstring filename;                                  // local file to upload
 	std::wstring blobName;                                  // name of the blob in Azure
+	std::list<FileChunk*> chunkl;							// list of chunks that we need to post-process each chunk after being uploaded
 	std::queue<FileChunk*> queueChunks;                     // queue holding each chunk to upload that the threads pull from 
 	azure::storage::cloud_storage_account storage_account;  // Azure Storage Account object
 	azure::storage::cloud_blob_client blob_client;          // Azure Storage client object
@@ -60,10 +62,11 @@ public:
 	bool verbose;
 
 public:
-	BlockUpload(int threads, unsigned long chunkSize)
+	BlockUpload(int threads, unsigned long chunkSize, bool updateblocklist)
 	{
 		this->countThreads = threads;
 		this->chunkSize = chunkSize;
+		this->updateblocklist = updateblocklist;
 		total_bytes = 0;
 		elapsed_secs = (float)0;
 	}
@@ -115,8 +118,6 @@ public:
 		unsigned long chunksread = 0;
 		unsigned long currpos = 0;
 
-		// list of chunks that we need to post-process each chunk after being uploaded
-		std::list<FileChunk*> chunkl;
 
 		// create chunks and push them on a queue
 		while (remaining > 0)
@@ -175,9 +176,33 @@ public:
 		this->elapsed_secs = (float)elapsed / (float)CLOCKS_PER_SEC;
 
 		return true;
-	} //
-	  /////////////////////////////////////////////////////////////////////////////
-	  // processing that takes part in a separate thread 
+	} 
+	std::vector<azure::storage::block_list_item> GetCurrentBlockList(std::list<FileChunk*> chunklist)
+	{
+		this->total_bytes = 0;
+		std::vector<azure::storage::block_list_item> vbi;
+		std::list<FileChunk*>::iterator it;
+		for (it = chunklist.begin(); it != chunklist.end(); ++it)
+		{
+			if ((*it)->completed)
+			{
+				//				time_t now = time(0);
+				//				double d = difftime(now, (*it)->endtime);
+				//				if (d > 0)
+				{
+					azure::storage::block_list_item *bli = new azure::storage::block_list_item((*it)->block_id);
+					vbi.push_back(*bli);
+				}
+			}
+			else
+				break;
+		}
+		return vbi;
+	}
+
+	//
+	/////////////////////////////////////////////////////////////////////////////
+	// processing that takes part in a separate thread 
 	void ThreadProc(int threadid)
 	{
 		std::ifstream file(this->filename, std::ios::in | std::ios::binary | std::ios::ate);
@@ -212,6 +237,19 @@ public:
 				fc->seconds = (float)(clock() - t0) / (float)CLOCKS_PER_SEC;
 				fc->threadid = threadid;
 				fc->completed = true;
+
+				if (this->updateblocklist)
+				{
+					try
+					{
+						std::vector<azure::storage::block_list_item> vbli = GetCurrentBlockList(this->chunkl);
+						blob.upload_block_list(vbli);
+					}
+					catch (std::exception& e)
+					{
+						ucout << "Azure Storage Upload Block List - Exception: " << e.what() << std::endl;
+					}
+				}
 			}
 			file.close();
 		}
@@ -252,11 +290,13 @@ bool ParseCommandLine(int argc, wchar_t* argv[],
 	std::wstring& AzureStorageContainer,
 	std::wstring& AzureStorageBlobName,
 	unsigned long& chunksize,
-	int& countThreads
+	int& countThreads,
+	bool& updateblocklist
 )
 {
 	chunksize = 1024 * 1024 * 4; // KB to MB * 4
 	countThreads = 4;
+	updateblocklist = false;
 	bool result = false;
 
 	try
@@ -309,6 +349,10 @@ bool ParseCommandLine(int argc, wchar_t* argv[],
 						if (chunksize < 1024 || chunksize >(1024 * 1024 * 4))
 							return result;
 					}
+				}
+				else if (option == L"--updateblocklist")
+				{
+					updateblocklist = true;
 				}
 				else
 					return result;
@@ -368,11 +412,12 @@ int _tmain(int argc, wchar_t* argv[])
 	std::wstring AzureStorageBlobName = U("");
 	unsigned long chunksize = 0;
 	int countThreads = 0;
+	bool updateblocklist = false;
 	azure::storage::cloud_storage_account StorageAccount;
 	azure::storage::cloud_blob_client StorageClient;
 	_setmode(_fileno(stdout), _O_U16TEXT);
 
-	bool result = ParseCommandLine(argc, argv, LocalFile, AzureStorageAccountName, AzureStorageAccountKey, AzureStorageContainer, AzureStorageBlobName, chunksize, countThreads);
+	bool result = ParseCommandLine(argc, argv, LocalFile, AzureStorageAccountName, AzureStorageAccountKey, AzureStorageContainer, AzureStorageBlobName, chunksize, countThreads, updateblocklist);
 	if (result == false)
 	{
 		ucout << "Azure Storage Upload Command line tool: syntax error" << std::endl;
@@ -382,6 +427,7 @@ int _tmain(int argc, wchar_t* argv[])
 		ucout << "             --container \"<Your Azure Storage Container>\" [--blob \"<Your Azure Storage BlobName>\"]" << std::endl;
 		ucout << "            [--chunksize <ChunkSize Max 4MB default 4MB>] " << std::endl;
 		ucout << "            [--threadcount <Number of threads Max 64 default 4>] " << std::endl;
+		ucout << "            [--updateblocklist] " << std::endl;
 		return 0;
 	}
 
@@ -399,7 +445,7 @@ int _tmain(int argc, wchar_t* argv[])
 				{
 					// Search in the container 
 					ucout << "Uploading file: " << LocalFile << " ..." << std::endl;
-					BlockUpload *blkup = new BlockUpload(countThreads, chunksize);
+					BlockUpload *blkup = new BlockUpload(countThreads, chunksize, updateblocklist);
 					blkup->verbose = false;
 					blkup->ConnectToAzureStorage(AzureStorageAccountName, AzureStorageAccountKey, AzureStorageContainer);
 
