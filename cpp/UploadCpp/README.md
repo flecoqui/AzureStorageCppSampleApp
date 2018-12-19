@@ -54,9 +54,10 @@ You need to know at least the Storage Account Name and the Storage Account Key o
 
 	UploadCpp.exe    --file <Path to your local file> 
 	                 --account <Your Azure Storage Account Name> --key <Your Azure Storage Account Key> 
-		             --container <Your Azure Storage Container> [--blob <Your Azure Storage BlobName>]
-		            [--chunksize <ChunkSize Max 4MB default 4MB>]
-		            [--threadcount <Number of threads Max 64 default 4>] 
+		           --container <Your Azure Storage Container> [--blob <Your Azure Storage BlobName>]
+		          [--chunksize <ChunkSize Max 4MB default 4MB>]
+		          [--threadcount <Number of threads Max 64 default 4>] 
+				  [--updateblocklist] 
 
 
 License
