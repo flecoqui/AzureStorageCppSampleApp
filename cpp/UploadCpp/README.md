@@ -57,7 +57,8 @@ You need to know at least the Storage Account Name and the Storage Account Key o
 	                 --container <Your Azure Storage Container> [--blob <Your Azure Storage BlobName>]
 	                [--chunksize <ChunkSize Max 4MB default 4MB>]
 	                [--threadcount <Number of threads Max 64 default 4>] 
-	                [--updateblocklist] 
+	                [--updateblocklistperiod <Period in ms>] 
+					[--verbose] 
 
 
 License
