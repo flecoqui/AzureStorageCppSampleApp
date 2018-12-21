@@ -24,6 +24,7 @@ public:
 	unsigned long length;                               // length of chunk to read from file
 	int threadid;                                       // marked by the thread that pulls the piece from the queue
 	bool completed;                                     // marked by the thread when completed
+	bool committed;
 	unsigned long bytesread;                            // actual bytes read from file
 	float seconds;                                      // time it took to send this chunk to Azure Storage
 	utility::string_t block_id;                         // BlockId for Azure
@@ -36,6 +37,7 @@ public:
 		this->length = length;
 		this->bytesread = 0;
 		this->completed = false;
+		this->committed = false;
 		this->threadid = 0;
 		this->seconds = (float)0;
 	}
@@ -56,19 +58,53 @@ private:
 	azure::storage::cloud_blob_client blob_client;          // Azure Storage client object
 	azure::storage::cloud_blob_container container;         // Azure Storage Container object
 
+	azure::storage::blob_request_options options;			// blob request option
+	azure::storage::access_condition condition;				// access condition 
+	azure::storage::operation_context context;				// operation context
+
+	std::mutex mtx_log;										// mutex used for logs
+
+	unsigned long updateblocklistperiod;					// Update block list period in ms
+	float lastupdateblocklisttime;							// time of the last block list update
+
+	bool requestexclusiveaccess;							// request exclusive access to send the block list
+	int threadtostop;										// remaining number of threads to stop
+	bool block_list_sent;									// block list sent flag
+
+	
+
+	std::mutex mtx_block_list_sent;							// mutex for critical section used to when block list sent
+	std::condition_variable cv_block_list_sent;				// condition variable for critical section  used to when block list sent
+	std::mutex mtx_all_threads_waiting;						// mutex for critical section used when all thread are on pause
+	std::condition_variable cv_all_threads_waiting;			// condition variable for critical section  when all thread are on pause
+
+
 public:
 	float elapsed_secs;                                     // how long in seconds the upload took
 	unsigned long total_bytes;                              // bytes uploaded
-	bool verbose;
+	bool verbose;											// verbose
 
 public:
-	BlockUpload(int threads, unsigned long chunkSize, bool updateblocklist)
+	BlockUpload(int threads, unsigned long chunkSize, unsigned long updateblocklistperiod, bool verbose)
 	{
 		this->countThreads = threads;
 		this->chunkSize = chunkSize;
-		this->updateblocklist = updateblocklist;
+		this->updateblocklistperiod = updateblocklistperiod;
+		this->verbose = verbose;
+		this->lastupdateblocklisttime = (float) clock();
+		options.set_parallelism_factor(threads);
+		//options.set_stream_write_size_in_bytes(chunkSize);
+		condition = azure::storage::access_condition::generate_empty_condition();
 		total_bytes = 0;
 		elapsed_secs = (float)0;
+		requestexclusiveaccess = false;
+		threadtostop = 0;
+		block_list_sent = false;
+	}
+	void Log(const char* message)
+	{
+		std::unique_lock<std::mutex> lck(mtx_log);
+		ucout << message ;
 	}
 	/////////////////////////////////////////////////////////////////////////////
 	// hook up the Azure Storage stuff based on account name, key and container name
@@ -164,8 +200,6 @@ public:
 		{
 			azure::storage::block_list_item *bli = new azure::storage::block_list_item((*it)->block_id);
 			vbi.push_back(*bli);
-			if (verbose)
-				std::cout << "T" << (*it)->threadid << ": Chunk " << (*it)->id << ". Start " << (*it)->startpos << ", Length " << (*it)->length << ". Time: " << (*it)->seconds << std::endl;
 			this->total_bytes += (*it)->bytesread;
 			delete (*it);
 		}
@@ -182,29 +216,79 @@ public:
 		this->total_bytes = 0;
 		std::vector<azure::storage::block_list_item> vbi;
 		std::list<FileChunk*>::iterator it;
+		bool bnew = false;
 		for (it = chunklist.begin(); it != chunklist.end(); ++it)
 		{
 			if ((*it)->completed)
 			{
-				//				time_t now = time(0);
-				//				double d = difftime(now, (*it)->endtime);
-				//				if (d > 0)
+				azure::storage::block_list_item *bli = new azure::storage::block_list_item((*it)->block_id);
+				vbi.push_back(*bli);
+				if((*it)->committed == false)
 				{
-					azure::storage::block_list_item *bli = new azure::storage::block_list_item((*it)->block_id);
-					vbi.push_back(*bli);
+					bnew = true;
 				}
 			}
 			else
 				break;
 		}
+		if(bnew == false)
+			vbi.clear();
 		return vbi;
 	}
-
+	bool TimeToUpdateBlockList()
+	{
+		bool result = false;
+		if (this->updateblocklistperiod > 0)
+		{
+			float t = (float) clock();
+			unsigned long tms = (unsigned long) (((float)(t - this->lastupdateblocklisttime) * 1000) / (float)CLOCKS_PER_SEC);
+			if(tms > this->updateblocklistperiod)
+			{
+				this->lastupdateblocklisttime = t;
+				result = true;			
+			}
+		}
+		return result;
+	}
+	//
+	/////////////////////////////////////////////////////////////////////////////
+	// Wait All Thread On Pause Before Sending Block List
+	void WaitAllThreadOnPauseBeforeSendingBlockList()
+	{
+		if (this->queueChunks.empty())
+			return;
+		std::unique_lock<std::mutex> lck_all_threads_waiting(mtx_all_threads_waiting);
+		while (this->threadtostop) { cv_all_threads_waiting.wait(lck_all_threads_waiting); }
+	}
+	/////////////////////////////////////////////////////////////////////////////
+	// Notify All Thread On Pause Before Sending Block List
+	void NotifyAllThreadOnPauseBeforeSendingBlockList()
+	{
+		std::unique_lock<std::mutex> lck_all_threads_waiting(mtx_all_threads_waiting);
+		cv_all_threads_waiting.notify_all();
+	}
+	/////////////////////////////////////////////////////////////////////////////
+	// Wait Block List Sent
+	void WaitBlockListSent()
+	{
+		if (this->queueChunks.empty())
+			return;
+		std::unique_lock<std::mutex> lck_block_list_sent(mtx_block_list_sent);
+		while (!this->block_list_sent) { cv_block_list_sent.wait(lck_block_list_sent); }
+	}
+	/////////////////////////////////////////////////////////////////////////////
+	// Notify Block List Sent
+	void NotifyBlockListSent()
+	{
+		std::unique_lock<std::mutex> lck_block_list_sent(mtx_block_list_sent);
+		cv_block_list_sent.notify_all();
+	}
 	//
 	/////////////////////////////////////////////////////////////////////////////
 	// processing that takes part in a separate thread 
 	void ThreadProc(int threadid)
 	{
+		
 		std::ifstream file(this->filename, std::ios::in | std::ios::binary | std::ios::ate);
 		if (file.is_open())
 		{
@@ -214,6 +298,32 @@ public:
 			// get the next file I/O task from hte queue and read that chunk
 			while (!this->queueChunks.empty())
 			{
+				if ((requestexclusiveaccess == true)&&(this->countThreads > 1))
+				{
+					this->threadtostop--;
+					
+
+					if (this->threadtostop == 0)
+					{
+						NotifyAllThreadOnPauseBeforeSendingBlockList();
+					}
+					if (this->verbose)
+					{
+						std::ostringstream oss;
+						oss << "Waiting block list sent in thread: " << threadid << std::endl;
+						this->Log(oss.str().c_str());
+					}
+					WaitBlockListSent();
+					if (this->verbose)
+					{
+						std::ostringstream oss;
+						oss << "Waiting block list sent in thread: " << threadid << std::endl;
+						this->Log(oss.str().c_str());
+					}
+					if (this->queueChunks.empty())
+						break;
+				}
+				
 				FileChunk *fc = (FileChunk*)(this->queueChunks.front());
 				this->queueChunks.pop();
 
@@ -232,22 +342,93 @@ public:
 
 				unsigned long t0 = clock();
 
-				blob.upload_block(fc->block_id, stream, md5);
-
-				fc->seconds = (float)(clock() - t0) / (float)CLOCKS_PER_SEC;
+				if (this->verbose)
+				{
+					std::ostringstream oss;
+					oss << "blob.upload_block in thread: " << threadid << std::endl;
+					this->Log(oss.str().c_str());
+				}
+				blob.upload_block(fc->block_id, stream, md5, condition, options, context);
 				fc->threadid = threadid;
 				fc->completed = true;
-
-				if (this->updateblocklist)
+				if (this->verbose)
 				{
+					std::ostringstream oss;
+					oss << "blob.upload_block done in thread: " << threadid << std::endl;
+					this->Log(oss.str().c_str());
+				}
+
+				fc->seconds = (float)(clock() - t0) / (float)CLOCKS_PER_SEC;
+
+				if ((threadid == 1)&&(!this->queueChunks.empty())&& (TimeToUpdateBlockList()) )
+				{
+					if (this->countThreads > 1)
+					{
+						this->block_list_sent = false;
+						this->requestexclusiveaccess = true;
+						this->threadtostop = this->countThreads - 1;
+						if (this->verbose)
+						{
+							std::ostringstream oss;
+							oss << "Waiting for all other threads pause in thread : " << threadid << std::endl;
+							this->Log(oss.str().c_str());
+						}
+						WaitAllThreadOnPauseBeforeSendingBlockList();
+						if (this->verbose)
+						{
+							std::ostringstream oss;
+							oss << "Waiting for all other threads pause done in thread : " << threadid << std::endl;
+							this->Log(oss.str().c_str());
+						}
+					}
 					try
 					{
-						std::vector<azure::storage::block_list_item> vbli = GetCurrentBlockList(this->chunkl);
-						blob.upload_block_list(vbli);
+						if (this->verbose)
+						{
+							std::ostringstream oss;
+							oss << "blob.upload_block_list in thread: " << threadid << std::endl;
+							this->Log(oss.str().c_str());
+						}
+
+						std::vector<azure::storage::block_list_item> vbli = GetCurrentBlockList(this->chunkl);	
+						if (vbli.size() > 0)
+						{
+							
+							std::vector<azure::storage::block_list_item>::iterator vbit;
+							
+							blob.upload_block_list(vbli, condition, options, context);
+							for (vbit = vbli.begin(); vbit != vbli.end(); ++vbit)
+							{
+								std::list<FileChunk*>::iterator it;
+								for (it = this->chunkl.begin(); it != this->chunkl.end(); ++it)
+								{
+									if ((*it)->block_id == vbit->id())
+									{
+										(*it)->committed = true;
+										break;
+									}
+								}
+							}
+						}
+						if (this->verbose)
+						{
+							std::ostringstream oss;
+							oss << "blob.upload_block_list done in thread: " << threadid << std::endl;
+							this->Log(oss.str().c_str());
+						}
+
 					}
 					catch (std::exception& e)
 					{
 						ucout << "Azure Storage Upload Block List - Exception: " << e.what() << std::endl;
+						//lck.unlock();
+					}
+
+					if (this->countThreads > 1)
+					{
+						this->requestexclusiveaccess = false;
+						this->block_list_sent = true;
+						NotifyBlockListSent();
 					}
 				}
 			}
@@ -291,12 +472,14 @@ bool ParseCommandLine(int argc, wchar_t* argv[],
 	std::wstring& AzureStorageBlobName,
 	unsigned long& chunksize,
 	int& countThreads,
-	bool& updateblocklist
+	unsigned long& updateblocklistperiod,
+	bool& verbose
 )
 {
 	chunksize = 1024 * 1024 * 4; // KB to MB * 4
 	countThreads = 4;
-	updateblocklist = false;
+	updateblocklistperiod = 0;
+	verbose = false;
 	bool result = false;
 
 	try
@@ -350,9 +533,16 @@ bool ParseCommandLine(int argc, wchar_t* argv[],
 							return result;
 					}
 				}
-				else if (option == L"--updateblocklist")
+				else if (option == L"--updateblocklistperiod")
 				{
-					updateblocklist = true;
+					if (--argc != 0)
+					{
+						updateblocklistperiod = (unsigned long)_wtol(*++argv);
+					}
+				}
+				else if (option == L"--verbose")
+				{
+					verbose = true;
 				}
 				else
 					return result;
@@ -412,12 +602,13 @@ int _tmain(int argc, wchar_t* argv[])
 	std::wstring AzureStorageBlobName = U("");
 	unsigned long chunksize = 0;
 	int countThreads = 0;
-	bool updateblocklist = false;
+	unsigned long  updateblocklistperiod = 0;
+	bool verbose = false;
 	azure::storage::cloud_storage_account StorageAccount;
 	azure::storage::cloud_blob_client StorageClient;
 	_setmode(_fileno(stdout), _O_U16TEXT);
 
-	bool result = ParseCommandLine(argc, argv, LocalFile, AzureStorageAccountName, AzureStorageAccountKey, AzureStorageContainer, AzureStorageBlobName, chunksize, countThreads, updateblocklist);
+	bool result = ParseCommandLine(argc, argv, LocalFile, AzureStorageAccountName, AzureStorageAccountKey, AzureStorageContainer, AzureStorageBlobName, chunksize, countThreads, updateblocklistperiod, verbose);
 	if (result == false)
 	{
 		ucout << "Azure Storage Upload Command line tool: syntax error" << std::endl;
@@ -427,7 +618,8 @@ int _tmain(int argc, wchar_t* argv[])
 		ucout << "             --container \"<Your Azure Storage Container>\" [--blob \"<Your Azure Storage BlobName>\"]" << std::endl;
 		ucout << "            [--chunksize <ChunkSize Max 4MB default 4MB>] " << std::endl;
 		ucout << "            [--threadcount <Number of threads Max 64 default 4>] " << std::endl;
-		ucout << "            [--updateblocklist] " << std::endl;
+		ucout << "            [--updateblocklistperiod <block list update period in ms>] " << std::endl;
+		ucout << "            [--verbose] " << std::endl;
 		return 0;
 	}
 
@@ -445,8 +637,7 @@ int _tmain(int argc, wchar_t* argv[])
 				{
 					// Search in the container 
 					ucout << "Uploading file: " << LocalFile << " ..." << std::endl;
-					BlockUpload *blkup = new BlockUpload(countThreads, chunksize, updateblocklist);
-					blkup->verbose = false;
+					BlockUpload *blkup = new BlockUpload(countThreads, chunksize, updateblocklistperiod,verbose);
 					blkup->ConnectToAzureStorage(AzureStorageAccountName, AzureStorageAccountKey, AzureStorageContainer);
 
 					bool rc = blkup->UploadFile(LocalFile, AzureStorageBlobName);
