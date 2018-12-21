@@ -58,7 +58,8 @@ You need to know at least the Storage Account Name and the Storage Account Key o
 	                [--chunksize <ChunkSize Max 4MB default 4MB>]
 	                [--threadcount <Number of threads Max 64 default 4>] 
 	                [--updateblocklistperiod <Period in ms>] 
-					[--verbose] 
+	                [--verbose] 
+
 
 
 License
